@@ -45,7 +45,7 @@ To use the AI-Powered Mock Interview Platform, follow these guidelines:
 
 ## Feedback
 
-If you have any feedback, please reach me at []() or connect with me on [LinkedIn](https://).
+If you have any feedback, please reach me at []() or connect with me on [LinkedIn](https://www.linkedin.com/in/himanshu-sharma-6827742a6).
 
 
 ## Contributing
