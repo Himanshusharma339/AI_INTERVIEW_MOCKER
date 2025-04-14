@@ -1,7 +1,11 @@
 import React from 'react'
 import { Button } from '@/components/ui/button';
 import Head from 'next/head';
-import Contect from './_components/Contect';
+// import Contect from './_components/Contect';
+// import Contect from './_components/Contect';
+import Contact from './_components/Contect';
+
+
 import Link from 'next/link';
 import { FaGithub } from "react-icons/fa";
 
@@ -25,7 +29,15 @@ const page = () => {
           <div className="container mx-auto flex flex-col md:flex-row justify-between items-center px-6">
             <h1 className="text-3xl font-bold text-primary">AI Mock Interview</h1>
             <nav className="flex flex-col sm:flex-row flex-wrap items-center justify-between mt-4 md:mt-0 space-y-4 sm:space-y-0 sm:space-x-4">
-              
+              {/* <div>
+                <iframe
+                  src="https://"
+                  title=""
+                  height="32"
+                  width="114"
+                  className="border-0 rounded-lg">
+                </iframe>
+              </div> */}
 
               <div>
                 <a
@@ -39,7 +51,7 @@ const page = () => {
               <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0">
                 <a href="#features" className="text-lg text-gray-800 mx-2 md:mx-4">Features</a>
                 <a href="#testimonials" className="text-lg text-gray-800 mx-2 md:mx-4">Testimonials</a>
-                <a href="#contact" className="text-lg text-gray-800 mx-2 md:mx-4">Contact</a>
+                <a href="#Contect" className="text-lg text-gray-800 mx-2 md:mx-4">Contact</a>
               </div>
             </nav>
           </div>
@@ -122,7 +134,7 @@ const page = () => {
 
         {/* Contact Section */}
         <section id="contact" className="py-16 bg-white px-6 md:px-0">
-          <Contect />
+          <Contact />
         </section>
       </main>
 

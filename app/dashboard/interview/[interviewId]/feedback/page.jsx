@@ -4,7 +4,7 @@ import { UserAnswer } from "@/utils/schema";
 import { eq } from "drizzle-orm";
 import React, { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { Volume2 } from "lucide-react";
+import { Volume2, PauseCircle } from "lucide-react";
 
 import {
   Collapsible,
@@ -18,8 +18,7 @@ import { useMemo } from "react";
 let currentUtterance = null; // Track current speech
 let isSpeaking = false; // Track if speech is running
 
-const textToSpeech = (text) => {
-  // If speech is playing, stop immediately
+const textToSpeech = (text, language = "hi-IN") => {
   if (isSpeaking && currentUtterance) {
     window.speechSynthesis.cancel();
     isSpeaking = false;
@@ -27,36 +26,40 @@ const textToSpeech = (text) => {
     return; // Stop here
   }
 
-  // Ensure previous speech is fully stopped before starting new one
   window.speechSynthesis.cancel();
 
-  // Create a new speech instance
+  // Create new speech instance
   const utterance = new SpeechSynthesisUtterance(text);
+  
+  const voices = window.speechSynthesis.getVoices();
+  const selectedVoice = voices.find((v) => v.lang.includes(language));
 
-  // Optional: Change voice settings
-  utterance.rate = 1; // Speed (0.5 - 2)
-  utterance.pitch = 1; // Pitch (0 - 2)
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+  } else {
+    const defaultVoice = voices.find((v) => v.lang.includes("en-US"));
+    utterance.voice = defaultVoice || voices[0]; // Fallback to default voice if selected language not available
+    console.warn(`${language} voice not found. Using default voice.`);
+  }
 
-  // Store the new utterance
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
   currentUtterance = utterance;
   isSpeaking = true;
 
-  // Start speaking
   window.speechSynthesis.speak(utterance);
 
-  // When speech ends, reset variables
   utterance.onend = () => {
     isSpeaking = false;
     currentUtterance = null;
   };
 };
 
-
-
-
 const Feedback = ({ params }) => {
   const router = useRouter();
   const [feedbackList, setFeedbackList] = useState([]);
+  const [isSpeakingState, setIsSpeakingState] = useState(false); // Manage the play/pause state
 
   useEffect(() => {
     GetFeedback();
@@ -69,22 +72,32 @@ const Feedback = ({ params }) => {
       .where(eq(UserAnswer.mockIdRef, params.interviewId))
       .orderBy(UserAnswer.id);
 
-    console.log(result);
     setFeedbackList(result);
   };
 
   const overallRating = useMemo(() => {
-    if (feedbackList && feedbackList.length > 0) {
-      const totalRating = feedbackList.reduce(
-        (sum, item) => sum + Number(item.rating),
-        0
-      );
-      // console.log("total",totalRating);
-      // console.log("length",feedbackList.length);
-      return (totalRating / feedbackList.length).toFixed(1);
+    const validRatings = feedbackList
+      .map((item) => Number(item.rating))
+      .filter((rating) => !isNaN(rating));
+
+    if (validRatings.length > 0) {
+      const total = validRatings.reduce((sum, r) => sum + r, 0);
+      return (total / validRatings.length).toFixed(1);
     }
+
     return 0;
   }, [feedbackList]);
+
+  // Toggle the speech
+  const handleSpeechToggle = (text, language = "hi-IN") => {
+    if (isSpeakingState) {
+      window.speechSynthesis.cancel();
+      setIsSpeakingState(false);
+    } else {
+      textToSpeech(text, language);
+      setIsSpeakingState(true);
+    }
+  };
 
   return (
     <div className="p-10">
@@ -94,8 +107,8 @@ const Feedback = ({ params }) => {
         </h2>
       ) : (
         <>
-         <h2 className="text-3xl font-bold text-green-500">Congratulations</h2>
-         <h2 className="font-bold text-2xl">Here is your interview feedback</h2>
+          <h2 className="text-3xl font-bold text-green-500">Congratulations</h2>
+          <h2 className="font-bold text-2xl">Here is your interview feedback</h2>
           <h2 className="text-primary text-lg my-3">
             Your overall interview rating{" "}
             <strong
@@ -115,7 +128,7 @@ const Feedback = ({ params }) => {
             feedbackList.map((item, index) => (
               <Collapsible key={index} className="mt-7">
                 <CollapsibleTrigger className="p-2 bg-secondary rounded-lg my-2 text-left flex justify-between gap-7 w-full">
-                  {item.question} <ChevronDown className="h-5 w-5" />{" "}
+                  {item.question} <ChevronDown className="h-5 w-5" />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="flex flex-col gap-2">
@@ -127,31 +140,25 @@ const Feedback = ({ params }) => {
                       <strong>Your Answer: </strong>
                       {item.userAns}
                       <Volume2
-                                className="cursor-pointer"
-                                onClick={() =>
-                                  textToSpeech(item.userAns)
-                                }
-                              />
+                        className="cursor-pointer"
+                        onClick={() => handleSpeechToggle(item.userAns, "hi-IN")}
+                      />
                     </h2>
                     <h2 className="p-2 border rounded-lg bg-green-50 text-sm text-green-900">
                       <strong>Correct Answer: </strong>
                       {item.correctAns}
                       <Volume2
-                                className="cursor-pointer"
-                                onClick={() =>
-                                  textToSpeech(item.correctAns)
-                                }
-                              />
+                        className="cursor-pointer"
+                        onClick={() => handleSpeechToggle(item.correctAns, "hi-IN")}
+                      />
                     </h2>
                     <h2 className="p-2 border rounded-lg bg-blue-50 text-sm text-primary-900">
                       <strong>Feedback: </strong>
                       {item.feedback}
                       <Volume2
-                                className="cursor-pointer"
-                                onClick={() =>
-                                  textToSpeech(item.feedback)
-                                }
-                              />
+                        className="cursor-pointer"
+                        onClick={() => handleSpeechToggle(item.feedback, "hi-IN")}
+                      />
                     </h2>
                   </div>
                 </CollapsibleContent>
